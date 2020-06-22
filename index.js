@@ -152,5 +152,65 @@ function executeSolution2() {
 
 //3. Resource Pooling
 function executeSolution3() {
-    console.log('executed solution 3');
+    class ResourceManager {
+        constructor(maxResourceCount) {
+            this.activeResources = [];
+            this.pendingResources = [];
+            this.resourceIdCount = 0;
+            this.maxResourceCount = maxResourceCount;
+        }
+
+        createResource(resourceManager) {
+            return {
+                id: ++resourceManager.resourceIdCount,
+                release: function() {
+                    const resources = resourceManager.activeResources;
+                    const resourceIndex = resources.findIndex(r => r.id == this.id);
+                    
+                    resources.splice(resourceIndex, 1);
+                    console.log(`released resource #${this.id}`);
+                }
+            }
+        }
+
+        borrow(callback) {
+            const resource = this.createResource(this);
+
+            if (this.activeResources.length < this.maxResourceCount) {
+                this.activeResources.push(resource);
+                callback(resource);
+            }
+            else {
+                // if (!this.pendingResources.find(r => r.id == resource.id)) {
+                //     this.pendingResources.push(resource);
+                // }
+                setTimeout(() => {
+                    this.borrow(callback)
+                }, 500);
+            }
+        }
+    }
+
+    const pool = new ResourceManager(2);
+    console.log('START');
+
+    const timestamp = Date.now();
+
+    pool.borrow((res) => {
+        console.log('RES: 1');
+
+        setTimeout(() => {
+            res.release();
+        }, 500);
+    });
+
+    pool.borrow((res) => {
+        console.log('RES: 2');
+    });
+
+    pool.borrow((res) => {
+        console.log('RES: 3');
+        console.log('DURATION: ' + (Date.now() - timestamp));
+    });
+    // console.log('Executed solution 3');
 }
