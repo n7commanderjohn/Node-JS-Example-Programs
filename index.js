@@ -45,12 +45,13 @@ function executeSolution1() {
                     promise.then(callback(iterArg));
                 }
             };
+
+            const iter = taskArr[Symbol.iterator]();
+            asyncOp(iter.next().value, callback(iter));
         }   
 
         //B. Async/Await Method if asyncOp was async
         else if (methodNum == 2) {
-            const iter = arr[Symbol.iterator]();
-            asyncOp(iter.next().value, callback(iter));
             for (const task of taskArr) {
                 const isAnArrayOfTasks = Array.isArray(task);
                 if (isAnArrayOfTasks) {
@@ -183,7 +184,6 @@ function executeSolution3() {
         }
 
         borrow(callback) {
-            
             if (this.activeResources.length < this.maxResourceCount) {
                 const resource = this.createResource(this);
                 this.activeResources.push(resource);
