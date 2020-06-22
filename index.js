@@ -1,7 +1,27 @@
 // solutions here
+const progArgs = process.argv.slice(2);
+const solutionNum = progArgs[0] ? Number(progArgs[0]) : 1;
+
 const lib = require('./lib/lib.js');
+const events = require('events');
+
+console.log(`***    Executing solution #${solutionNum}...   ***`);
+
+switch (solutionNum) {
+    case 1:
+        executeSolution1();
+        break;
+    case 2:
+        executeSolution2();
+        break;
+    default:
+        executeSolution1();
+        break;
+}
+
 //1. Asynchronous Operations
-{
+function executeSolution1() {
+    const asyncOp = lib.asyncOp;
     /**
      * @param {Array} taskArr
      */
@@ -12,40 +32,38 @@ const lib = require('./lib/lib.js');
         //     let promise;
         //     if (task) {
         //         if (Array.isArray(task)) {
-        //             const promiseArr = task.map(subTask => lib.asyncOp(subTask));
+        //             const promiseArr = task.map(subTask => asyncOp(subTask));
         //             promise = Promise.all(promiseArr);
         //         } else {
-        //             promise = lib.asyncOp(task);
+        //             promise = asyncOp(task);
         //         }
         //         promise.then(callback(iterArg));
         //     }
         // };
-
         // const iter = arr[Symbol.iterator]();
-        // lib.asyncOp(iter.next().value, callback(iter));
-
-        // //B. Async/Await Method if lib.asyncOp was async
+        // asyncOp(iter.next().value, callback(iter));
+        // //B. Async/Await Method if asyncOp was async
         // for (const task of taskArr) {
         //     const isAnArrayOfTasks = Array.isArray(task);
         //     if (isAnArrayOfTasks) {
-        //         const promiseArr = task.map(subTask => lib.asyncOp(subTask));
+        //         const promiseArr = task.map(subTask => asyncOp(subTask));
         //         await Promise.all(promiseArr);
         //     }
         //     else {
-        //         await lib.asyncOp(task);
+        //         await asyncOp(task);
         //     }
         // }
-
-        //C. Workaround for if lib.asyncOp isn't async
+        //C. Workaround for if asyncOp isn't async
         console.log(`starting async function ${num}`);
         async function promisedAsyncOp(task) {
-            return new Promise(resolve => lib.asyncOp(task, resolve));
+            return new Promise(resolve => asyncOp(task, resolve));
         }
-        
+
         for (let task of taskArr) {
             if (Array.isArray(task)) {
                 await Promise.all(task.map(subtask => promisedAsyncOp(subtask)));
-            } else {
+            }
+            else {
                 await promisedAsyncOp(task);
             }
         }
@@ -54,16 +72,16 @@ const lib = require('./lib/lib.js');
 
     const input1 = [
         'A',
-        [ 'B', 'C' ],
+        ['B', 'C'],
         'D'
     ];
 
     const input2 = [
         'A',
-        [ 'B', 'C', 'D', 'E' ],
+        ['B', 'C', 'D', 'E'],
         'F',
         'G',
-        [ 'H', 'I' ]
+        ['H', 'I']
     ];
 
     doAsync(input1, 1);
@@ -71,3 +89,60 @@ const lib = require('./lib/lib.js');
 }
 
 //2. Streams
+function executeSolution2() {
+    const maxNumberOfEmits = progArgs[1] ? progArgs[1] : 3;
+    console.log(`Will emit ${maxNumberOfEmits} times...`);
+    const seperator = '***************************************';
+    class RandStringSource extends events.EventEmitter {
+        constructor(randStream, maxNumberOfEmits) {
+            super();
+            this.randStream = randStream;
+            this.numberOfEmits = 0;
+            this.maxNumberOfEmits = maxNumberOfEmits;
+            this.emitForRead();
+        }
+
+        emitForRead() {
+            const randString = this.randStream.read();
+            const isValidData = randString && (randString.indexOf('.') != -1);
+            const isUnderMax = this.numberOfEmits < this.maxNumberOfEmits || this.maxNumberOfEmits == 0;
+            const hasMaxNumberOfEmits = this.maxNumberOfEmits;
+            const willRun = isUnderMax || !hasMaxNumberOfEmits;
+
+            if (isValidData && willRun) {
+                console.log(seperator);
+                console.log(`Emit Number #${++this.numberOfEmits}`);
+                console.log(`Full Chunk: ${randString}`);
+
+                this.emitChunk(randString);
+
+                console.log(seperator);
+            }
+            if (willRun)
+                setTimeout(() => {
+                    this.emitForRead();
+                }, 1);
+            else {
+                console.log(`Emitted ${this.maxNumberOfEmits} times.`);
+                process.exit();
+            }
+        }
+
+        emitChunk(randString) {
+            const segments = randString.split('.');
+            for (const segment in segments) {
+                const position = 1 + Number(segment);
+                const value = segments[segment];
+
+                this.emit('data', `Segment #${position}: ${value}`);
+            }
+        }
+    }
+
+    const RandStream = lib.RandStream;
+    const source = new RandStringSource(new RandStream(), maxNumberOfEmits);
+
+    source.on('data', (data) => {
+        console.log(data);
+    });
+}
