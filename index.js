@@ -166,7 +166,7 @@ function executeSolution3() {
                 release: function() {
                     const resources = resourceManager.activeResources;
                     const resourceIndex = resources.findIndex(r => r.id == this.id);
-                    
+
                     resources.splice(resourceIndex, 1);
                     console.log(`released resource #${this.id}`);
                 }
@@ -174,13 +174,14 @@ function executeSolution3() {
         }
 
         borrow(callback) {
-            const resource = this.createResource(this);
-
+            
             if (this.activeResources.length < this.maxResourceCount) {
+                const resource = this.createResource(this);
                 this.activeResources.push(resource);
                 callback(resource);
             }
             else {
+                // const resource = this.createResource(this);
                 // if (!this.pendingResources.find(r => r.id == resource.id)) {
                 //     this.pendingResources.push(resource);
                 // }
@@ -196,21 +197,30 @@ function executeSolution3() {
 
     const timestamp = Date.now();
 
+    const release = (res) => () => {
+        res.release();
+    };
+
     pool.borrow((res) => {
         console.log('RES: 1');
 
-        setTimeout(() => {
-            res.release();
-        }, 500);
+        setTimeout(release(res), 500);
     });
 
     pool.borrow((res) => {
         console.log('RES: 2');
+        setTimeout(release(res), 500);
     });
 
     pool.borrow((res) => {
         console.log('RES: 3');
+        setTimeout(release(res), 500);
+    });
+
+    pool.borrow((res) => {
+        console.log('RES: 4');
         console.log('DURATION: ' + (Date.now() - timestamp));
+        setTimeout(release(res), 500);
     });
     // console.log('Executed solution 3');
 }
