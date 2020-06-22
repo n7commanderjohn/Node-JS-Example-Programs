@@ -197,30 +197,31 @@ function executeSolution3() {
 
     const timestamp = Date.now();
 
-    const release = (res) => () => {
-        res.release();
+    const releaseTimed = (res, time = 500) => {
+        setTimeout(() => {
+            res.release();
+        }, time);
     };
 
     pool.borrow((res) => {
         console.log('RES: 1');
-
-        setTimeout(release(res), 500);
+        releaseTimed(res);
     });
 
     pool.borrow((res) => {
         console.log('RES: 2');
-        setTimeout(release(res), 500);
+        releaseTimed(res);
     });
 
     pool.borrow((res) => {
         console.log('RES: 3');
-        setTimeout(release(res), 500);
+        releaseTimed(res);
     });
 
     pool.borrow((res) => {
         console.log('RES: 4');
         console.log('DURATION: ' + (Date.now() - timestamp));
-        setTimeout(release(res), 500);
+        releaseTimed(res);
     });
     // console.log('Executed solution 3');
 }
