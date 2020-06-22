@@ -1,78 +1,88 @@
 // solutions here
+const progArgs = process.argv.slice(2);
+const solutionNum = progArgs[0] ? progArgs[0] : 1;
+
 const lib = require('./lib/lib.js');
 const events = require('events');
-// {
-//    //1. Asynchronous Operations
-//     const asyncOp = lib.asyncOp;
-//     /**
-//      * @param {Array} taskArr
-//      */
-//     async function doAsync(taskArr, num) {
-//         // //A. Mehhh method without using async/await.
-//         // const callback = (iterArg) => () => {
-//         //     const task = iterArg.next().value;
-//         //     let promise;
-//         //     if (task) {
-//         //         if (Array.isArray(task)) {
-//         //             const promiseArr = task.map(subTask => asyncOp(subTask));
-//         //             promise = Promise.all(promiseArr);
-//         //         } else {
-//         //             promise = asyncOp(task);
-//         //         }
-//         //         promise.then(callback(iterArg));
-//         //     }
-//         // };
 
-//         // const iter = arr[Symbol.iterator]();
-//         // asyncOp(iter.next().value, callback(iter));
-
-//         // //B. Async/Await Method if asyncOp was async
-//         // for (const task of taskArr) {
-//         //     const isAnArrayOfTasks = Array.isArray(task);
-//         //     if (isAnArrayOfTasks) {
-//         //         const promiseArr = task.map(subTask => asyncOp(subTask));
-//         //         await Promise.all(promiseArr);
-//         //     }
-//         //     else {
-//         //         await asyncOp(task);
-//         //     }
-//         // }
-
-//         //C. Workaround for if asyncOp isn't async
-//         console.log(`starting async function ${num}`);
-//         async function promisedAsyncOp(task) {
-//             return new Promise(resolve => asyncOp(task, resolve));
-//         }
-        
-//         for (let task of taskArr) {
-//             if (Array.isArray(task)) {
-//                 await Promise.all(task.map(subtask => promisedAsyncOp(subtask)));
-//             } else {
-//                 await promisedAsyncOp(task);
-//             }
-//         }
-//         console.log(`finished async function ${num}`);
-//     }
-
-//     const input1 = [
-//         'A',
-//         [ 'B', 'C' ],
-//         'D'
-//     ];
-
-//     const input2 = [
-//         'A',
-//         [ 'B', 'C', 'D', 'E' ],
-//         'F',
-//         'G',
-//         [ 'H', 'I' ]
-//     ];
-
-//     doAsync(input1, 1);
-//     // doAsync(input2, 2);
-// }
-
+console.log(`***    Executing solution #${solutionNum}...   ***`);
+if (solutionNum == 1)
 {
+   //1. Asynchronous Operations
+    const asyncOp = lib.asyncOp;
+    /**
+     * @param {Array} taskArr
+     */
+    async function doAsync(taskArr, num) {
+        // //A. Mehhh method without using async/await.
+        // const callback = (iterArg) => () => {
+        //     const task = iterArg.next().value;
+        //     let promise;
+        //     if (task) {
+        //         if (Array.isArray(task)) {
+        //             const promiseArr = task.map(subTask => asyncOp(subTask));
+        //             promise = Promise.all(promiseArr);
+        //         } else {
+        //             promise = asyncOp(task);
+        //         }
+        //         promise.then(callback(iterArg));
+        //     }
+        // };
+
+        // const iter = arr[Symbol.iterator]();
+        // asyncOp(iter.next().value, callback(iter));
+
+        // //B. Async/Await Method if asyncOp was async
+        // for (const task of taskArr) {
+        //     const isAnArrayOfTasks = Array.isArray(task);
+        //     if (isAnArrayOfTasks) {
+        //         const promiseArr = task.map(subTask => asyncOp(subTask));
+        //         await Promise.all(promiseArr);
+        //     }
+        //     else {
+        //         await asyncOp(task);
+        //     }
+        // }
+
+        //C. Workaround for if asyncOp isn't async
+        console.log(`starting async function ${num}`);
+        async function promisedAsyncOp(task) {
+            return new Promise(resolve => asyncOp(task, resolve));
+        }
+        
+        for (let task of taskArr) {
+            if (Array.isArray(task)) {
+                await Promise.all(task.map(subtask => promisedAsyncOp(subtask)));
+            } else {
+                await promisedAsyncOp(task);
+            }
+        }
+        console.log(`finished async function ${num}`);
+    }
+
+    const input1 = [
+        'A',
+        [ 'B', 'C' ],
+        'D'
+    ];
+
+    const input2 = [
+        'A',
+        [ 'B', 'C', 'D', 'E' ],
+        'F',
+        'G',
+        [ 'H', 'I' ]
+    ];
+
+    doAsync(input1, 1);
+    // doAsync(input2, 2);
+}
+
+if (solutionNum == 2)
+{
+    const maxNumberOfEmits = progArgs[1] ? progArgs[1] : 5;
+    console.log(`Will emit ${maxNumberOfEmits} times...`);
+    const seperator = '***************************************';
     //2. Streams
     class RandStringSource extends events.EventEmitter {
         constructor(randStream, maxNumberOfEmits) {
@@ -86,12 +96,11 @@ const events = require('events');
         emitForRead() {
             const randString = this.randStream.read();
             const isValidData = randString && (randString.indexOf('.') != -1);
-            const isUnderMax = this.numberOfEmits < this.maxNumberOfEmits;
+            const isUnderMax = this.numberOfEmits < this.maxNumberOfEmits || this.maxNumberOfEmits == 0;
             const hasMaxNumberOfEmits = this.maxNumberOfEmits;
             const willRun =  isUnderMax || !hasMaxNumberOfEmits;
 
             if (isValidData && willRun) {
-                const seperator = '***************************************';
                 console.log(seperator);
                 console.log(`Emit Number #${++this.numberOfEmits}`);
                 console.log(`Full Chunk: ${randString}`);
@@ -105,7 +114,7 @@ const events = require('events');
                     this.emitForRead();
                 }, 1);
             else {
-                console.log(`Emitted max number of times as defined in CLI: ${this.maxNumberOfEmits}`);
+                console.log(`Emitted ${this.maxNumberOfEmits} times.`);
                 process.exit();
             }
         }
@@ -122,8 +131,7 @@ const events = require('events');
     }
 
     const RandStream = lib.RandStream;
-    const cliArg = process.argv[2] ? process.argv[2] : null;
-    const source = new RandStringSource(new RandStream(), cliArg);
+    const source = new RandStringSource(new RandStream(), maxNumberOfEmits);
 
     source.on('data', (data) => {
         console.log(data);
