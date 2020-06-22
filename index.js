@@ -1,14 +1,26 @@
 // solutions here
 const progArgs = process.argv.slice(2);
-const solutionNum = progArgs[0] ? progArgs[0] : 1;
+const solutionNum = progArgs[0] ? Number(progArgs[0]) : 1;
 
 const lib = require('./lib/lib.js');
 const events = require('events');
 
 console.log(`***    Executing solution #${solutionNum}...   ***`);
-if (solutionNum == 1)
-{
-   //1. Asynchronous Operations
+
+switch (solutionNum) {
+    case 1:
+        executeSolution1();
+        break;
+    case 2:
+        executeSolution2();
+        break;
+    default:
+        executeSolution1();
+        break;
+}
+
+//1. Asynchronous Operations
+function executeSolution1() {
     const asyncOp = lib.asyncOp;
     /**
      * @param {Array} taskArr
@@ -28,10 +40,8 @@ if (solutionNum == 1)
         //         promise.then(callback(iterArg));
         //     }
         // };
-
         // const iter = arr[Symbol.iterator]();
         // asyncOp(iter.next().value, callback(iter));
-
         // //B. Async/Await Method if asyncOp was async
         // for (const task of taskArr) {
         //     const isAnArrayOfTasks = Array.isArray(task);
@@ -43,17 +53,17 @@ if (solutionNum == 1)
         //         await asyncOp(task);
         //     }
         // }
-
         //C. Workaround for if asyncOp isn't async
         console.log(`starting async function ${num}`);
         async function promisedAsyncOp(task) {
             return new Promise(resolve => asyncOp(task, resolve));
         }
-        
+
         for (let task of taskArr) {
             if (Array.isArray(task)) {
                 await Promise.all(task.map(subtask => promisedAsyncOp(subtask)));
-            } else {
+            }
+            else {
                 await promisedAsyncOp(task);
             }
         }
@@ -62,28 +72,27 @@ if (solutionNum == 1)
 
     const input1 = [
         'A',
-        [ 'B', 'C' ],
+        ['B', 'C'],
         'D'
     ];
 
     const input2 = [
         'A',
-        [ 'B', 'C', 'D', 'E' ],
+        ['B', 'C', 'D', 'E'],
         'F',
         'G',
-        [ 'H', 'I' ]
+        ['H', 'I']
     ];
 
     doAsync(input1, 1);
     // doAsync(input2, 2);
 }
 
-if (solutionNum == 2)
-{
-    const maxNumberOfEmits = progArgs[1] ? progArgs[1] : 5;
+//2. Streams
+function executeSolution2() {
+    const maxNumberOfEmits = progArgs[1] ? progArgs[1] : 3;
     console.log(`Will emit ${maxNumberOfEmits} times...`);
     const seperator = '***************************************';
-    //2. Streams
     class RandStringSource extends events.EventEmitter {
         constructor(randStream, maxNumberOfEmits) {
             super();
@@ -98,7 +107,7 @@ if (solutionNum == 2)
             const isValidData = randString && (randString.indexOf('.') != -1);
             const isUnderMax = this.numberOfEmits < this.maxNumberOfEmits || this.maxNumberOfEmits == 0;
             const hasMaxNumberOfEmits = this.maxNumberOfEmits;
-            const willRun =  isUnderMax || !hasMaxNumberOfEmits;
+            const willRun = isUnderMax || !hasMaxNumberOfEmits;
 
             if (isValidData && willRun) {
                 console.log(seperator);
@@ -109,7 +118,7 @@ if (solutionNum == 2)
 
                 console.log(seperator);
             }
-            if (willRun) 
+            if (willRun)
                 setTimeout(() => {
                     this.emitForRead();
                 }, 1);
