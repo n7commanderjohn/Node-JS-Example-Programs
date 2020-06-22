@@ -105,7 +105,7 @@ const events = require('events');
                     this.emitForRead();
                 }, 1);
             else {
-                console.log(`Emitted max number of times as defined: ${this.maxNumberOfEmits}`);
+                console.log(`Emitted max number of times as defined in CLI: ${this.maxNumberOfEmits}`);
                 process.exit();
             }
         }
@@ -122,7 +122,8 @@ const events = require('events');
     }
 
     const RandStream = lib.RandStream;
-    let source = new RandStringSource(new RandStream(), 10);
+    const cliArg = process.argv[2] ? process.argv[2] : null;
+    const source = new RandStringSource(new RandStream(), cliArg);
 
     source.on('data', (data) => {
         console.log(data);
