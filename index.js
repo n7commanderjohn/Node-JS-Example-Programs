@@ -14,6 +14,9 @@ switch (solutionNum) {
     case 2:
         executeSolution2();
         break;
+    case 3:
+        executeSolution3();
+        break;
     default:
         executeSolution1();
         break;
@@ -145,4 +148,9 @@ function executeSolution2() {
     source.on('data', (data) => {
         console.log(data);
     });
+}
+
+//3. Resource Pooling
+function executeSolution3() {
+    console.log('executed solution 3');
 }
