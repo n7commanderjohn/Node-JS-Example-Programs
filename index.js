@@ -1,8 +1,8 @@
 // solutions here
 const lib = require('./lib/lib.js');
 const events = require('events');
-//1. Asynchronous Operations
 // {
+//    //1. Asynchronous Operations
 //     const asyncOp = lib.asyncOp;
 //     /**
 //      * @param {Array} taskArr
@@ -72,57 +72,59 @@ const events = require('events');
 //     // doAsync(input2, 2);
 // }
 
-//2. Streams
-class RandStringSource extends events.EventEmitter {
-    constructor(randStream, maxNumberOfEmits) {
-        super();
-        this.randStream = randStream;
-        this.numberOfEmits = 0;
-        this.maxNumberOfEmits = maxNumberOfEmits;
-        this.emitForRead();
+{
+    //2. Streams
+    class RandStringSource extends events.EventEmitter {
+        constructor(randStream, maxNumberOfEmits) {
+            super();
+            this.randStream = randStream;
+            this.numberOfEmits = 0;
+            this.maxNumberOfEmits = maxNumberOfEmits;
+            this.emitForRead();
+        }
+
+        emitForRead() {
+            const randString = this.randStream.read();
+            const isValidData = randString && (randString.indexOf('.') != -1);
+            const isUnderMax = this.numberOfEmits < this.maxNumberOfEmits;
+            const hasMaxNumberOfEmits = this.maxNumberOfEmits;
+            const willRun =  isUnderMax || !hasMaxNumberOfEmits;
+
+            if (isValidData && willRun) {
+                const seperator = '***************************************';
+                console.log(seperator);
+                console.log(`Emit Number #${++this.numberOfEmits}`);
+                console.log(`Full Chunk: ${randString}`);
+
+                this.emitChunk(randString);
+
+                console.log(seperator);
+            }
+            if (willRun) 
+                setTimeout(() => {
+                    this.emitForRead();
+                }, 1);
+            else {
+                console.log(`Emitted max number of times as defined: ${this.maxNumberOfEmits}`);
+                process.exit();
+            }
+        }
+
+        emitChunk(randString) {
+            const segments = randString.split('.');
+            for (const segment in segments) {
+                const position = 1 + Number(segment);
+                const value = segments[segment];
+
+                this.emit('data', `Segment #${position}: ${value}`);
+            }
+        }
     }
 
-    emitForRead() {
-        const randString = this.randStream.read();
-        const isValidData = randString && (randString.indexOf('.') != -1);
-        const isUnderMax = this.numberOfEmits < this.maxNumberOfEmits;
-        const hasMaxNumberOfEmits = this.maxNumberOfEmits;
-        const willRun =  isUnderMax || !hasMaxNumberOfEmits;
+    const RandStream = lib.RandStream;
+    let source = new RandStringSource(new RandStream(), 10);
 
-        if (isValidData && willRun) {
-            const seperator = '***************************************';
-            console.log(seperator);
-            console.log(`Emit Number #${++this.numberOfEmits}`);
-            console.log(`Full Chunk: ${randString}`);
-
-            this.emitChunk(randString);
-
-            console.log(seperator);
-        }
-        if (willRun) 
-            setTimeout(() => {
-                this.emitForRead();
-            }, 1);
-        else {
-            console.log(`Emitted max number of times as defined: ${this.maxNumberOfEmits}`);
-            process.exit();
-        }
-    }
-
-    emitChunk(randString) {
-        const segments = randString.split('.');
-        for (const segment in segments) {
-            const position = 1 + Number(segment);
-            const value = segments[segment];
-
-            this.emit('data', `Segment #${position}: ${value}`);
-        }
-    }
+    source.on('data', (data) => {
+        console.log(data);
+    });
 }
-
-const RandStream = lib.RandStream;
-let source = new RandStringSource(new RandStream(), 10);
-
-source.on('data', (data) => {
-    console.log(data);
-});
